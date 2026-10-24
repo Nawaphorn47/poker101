@@ -41,6 +41,52 @@ describe('drill page', () => {
     expect(screen.getByText('Heads-up push/fold')).toBeTruthy();
   });
 
+  it('the menu lists all six drill types', async () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Drills' }));
+    for (const title of [
+      'Pot odds / equity', 'Preflop by position', 'Heads-up push/fold',
+      'What do you have?', 'Count your outs', 'Equity against a range',
+    ]) {
+      expect(await screen.findByText(title)).toBeTruthy();
+    }
+  });
+
+  it('a question whose scenario has a board shows the board cards as well as the hole cards', async () => {
+    const withBoard: DrillModule = {
+      ...fake('vsrange'),
+      generate: (_rng, level) => ({
+        type: 'vsrange', level, key: 'vsrange:k', prompt: 'Board question', scenario: {
+          hole: [{ rank: 14, suit: 's' }, { rank: 13, suit: 'h' }],
+          board: [{ rank: 2, suit: 'c' }, { rank: 7, suit: 'd' }, { rank: 9, suit: 'h' }, { rank: 11, suit: 'c' }],
+        },
+        options: [{ value: 'a', label: 'Answer A' }, { value: 'b', label: 'Answer B' }],
+      }),
+    };
+    render(<DrillPage onBack={() => {}} modules={[withBoard]} deps={makeDeps().deps} />);
+    start('Equity against a range');
+    await screen.findByText('Board question');
+    const board = screen.getByLabelText('board');
+    expect(board.querySelectorAll('.card')).toHaveLength(4);
+    expect(screen.getByLabelText('your cards').querySelectorAll('.card')).toHaveLength(2);
+  });
+
+  it('a question without a board shows no board area', async () => {
+    render(<DrillPage onBack={() => {}} modules={[fake('odds')]} deps={makeDeps().deps} />);
+    start('Pot odds / equity');
+    await screen.findByText('Question for odds');
+    expect(screen.queryByLabelText('board')).toBeNull();
+  });
+
+  it('shows the Exact badge and explanation for a range-equity style grade', async () => {
+    render(<DrillPage onBack={() => {}} modules={[fake('vsrange', { explanation: 'Against 120 hands in the range' })]} deps={makeDeps().deps} />);
+    start('Equity against a range');
+    await answer('Answer A');
+    const panel = await screen.findByRole('status');
+    expect(panel.textContent).toMatch(/Exact/);
+    expect(panel.textContent).toMatch(/Against 120 hands in the range/);
+  });
+
   it('shows the Exact badge for an exact grade', async () => {
     render(<DrillPage onBack={() => {}} modules={[fake('odds')]} deps={makeDeps().deps} />);
     start('Pot odds / equity');

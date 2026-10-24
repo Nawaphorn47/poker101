@@ -148,15 +148,24 @@ export function DrillPage({
 
   if (active) {
     const q = active.questions[active.index];
-    const hole = (q.scenario as { hole?: Card[] } | null)?.hole;
+    const shown = q.scenario as { hole?: Card[]; board?: Card[] } | null;
+    const hole = shown?.hole;
+    const boardCards = shown?.board;
     return (
       <section className="drill">
         <button onClick={onBack}>Back</button>
         <p className="note">
           Question {active.index + 1} of {active.questions.length}
         </p>
+        {boardCards && boardCards.length > 0 && (
+          <div className="cards board-cards" aria-label="board">
+            {boardCards.map((c, i) => (
+              <CardView key={i} card={c} />
+            ))}
+          </div>
+        )}
         {hole && (
-          <div className="cards">
+          <div className="cards" aria-label="your cards">
             {hole.map((c, i) => (
               <CardView key={i} card={c} />
             ))}
