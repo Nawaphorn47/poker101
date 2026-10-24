@@ -158,17 +158,23 @@ export function DrillPage({
           Question {active.index + 1} of {active.questions.length}
         </p>
         {boardCards && boardCards.length > 0 && (
-          <div className="cards board-cards" aria-label="board">
-            {boardCards.map((c, i) => (
-              <CardView key={i} card={c} />
-            ))}
+          <div className="card-group">
+            <span className="caption">Board</span>
+            <div className="cards board-cards" aria-label="board">
+              {boardCards.map((c, i) => (
+                <CardView key={i} card={c} />
+              ))}
+            </div>
           </div>
         )}
         {hole && (
-          <div className="cards" aria-label="your cards">
-            {hole.map((c, i) => (
-              <CardView key={i} card={c} />
-            ))}
+          <div className="card-group">
+            {boardCards && boardCards.length > 0 && <span className="caption">Your cards</span>}
+            <div className="cards" aria-label="your cards">
+              {hole.map((c, i) => (
+                <CardView key={i} card={c} />
+              ))}
+            </div>
           </div>
         )}
         <p className="prompt">{q.prompt}</p>

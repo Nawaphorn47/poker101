@@ -51,7 +51,7 @@ src/drill/
 - Level 2: hero's cards, the villain's cards and a full board. Choose "you win", "villain wins" or "split". Answer from `compareScores`. Deals are weighted so that splits and kicker decisions appear.
 
 ### 2. `outs`
-- Hero's two cards and a flop or turn where hero does not yet have a straight or better. Question: how many unseen cards on the **next card** would give hero a **straight or better** (a straight, flush, full house, quads or straight flush). The definition is printed in the question. Answer = number of unseen cards for which `evaluate(hole + board + card).category >= 4`.
+- Hero's two cards and a flop or turn where hero does not yet have a straight or better. Question: how many unseen cards on the **next card** would give hero a **straight or better** (a straight, flush, full house, quads or straight flush). The definition is printed in the question. Answer = number of unseen cards for which `evaluate(hole + board + card).category >= 4` **and** the hand is better than the board alone would give every player (`compareScores(evaluate(hole + board + card), evaluate(board + card)) > 0`). A card that only completes a straight or flush on the board is not an out. Level 1 keeps only questions whose outs are all straights or flushes.
 - Level 1: single flush or straight draws on unpaired boards. Level 2: mixed cases (combo draws, paired boards, draws to full houses).
 - Four distinct numeric options; none are negative.
 

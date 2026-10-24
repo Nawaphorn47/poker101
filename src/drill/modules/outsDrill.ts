@@ -1,10 +1,11 @@
 import type { Card } from '../../engine/cards';
 import { cardToString } from '../../engine/cards';
 import { shuffledDeck } from '../../engine/deck';
-import { evaluate } from '../../engine/handEvaluator';
+import { compareScores, evaluate } from '../../engine/handEvaluator';
 import type { DrillModule, Grade, Question } from '../types';
 
 const STRAIGHT = 4; // hand category of a straight; anything at or above it counts
+const FLUSH = 5;
 const MAX_ATTEMPTS = 5000;
 const SINGLE_DRAW_OUTS = [4, 8, 9]; // gutshot, open-ended straight draw, flush draw
 
@@ -14,12 +15,17 @@ const show = (cards: Card[]) => cards.map(cardToString).join(' ');
 const streetOf = (board: Card[]) => (board.length === 3 ? 'flop' : 'turn');
 const isPaired = (board: Card[]) => new Set(board.map((c) => c.rank)).size < board.length;
 
-/** The unseen cards that would give a straight or better on the next card. */
+/**
+ * The unseen cards that would give you a straight or better on the next card using your own cards.
+ * A card that only completes a straight or flush on the board is not an out: every player would have it.
+ */
 function outCards(hole: Card[], board: Card[]): Card[] {
   const used = new Set([...hole, ...board].map(cardToString));
-  return shuffledDeck(0).filter(
-    (c) => !used.has(cardToString(c)) && evaluate([...hole, ...board, c]).category >= STRAIGHT,
-  );
+  return shuffledDeck(0).filter((c) => {
+    if (used.has(cardToString(c))) return false;
+    const mine = evaluate([...hole, ...board, c]);
+    return mine.category >= STRAIGHT && compareScores(mine, evaluate([...board, c])) > 0;
+  });
 }
 
 /** Number of unseen cards that give a straight, flush, full house or better on the next card. */
@@ -45,10 +51,16 @@ function deal(rng: () => number): Scenario {
 /** Level 1 keeps single draws on unpaired boards; level 2 keeps anything with outs, favouring big combination draws. */
 function accept(level: number, sc: Scenario, rng: () => number): boolean {
   if (evaluate([...sc.hole, ...sc.board]).category >= STRAIGHT) return false;
-  const outs = countOuts(sc.hole, sc.board);
+  const cards = outCards(sc.hole, sc.board);
+  const outs = cards.length;
   if (level === 1) {
     if (isPaired(sc.board)) return false;
-    return SINGLE_DRAW_OUTS.includes(outs) || (outs === 0 && rng() < 0.1);
+    // a single straight or flush draw: every out completes a straight or a flush, none a full house or better
+    const onlyStraightsAndFlushes = cards.every((c) => {
+      const category = evaluate([...sc.hole, ...sc.board, c]).category;
+      return category === STRAIGHT || category === FLUSH;
+    });
+    return onlyStraightsAndFlushes && (SINGLE_DRAW_OUTS.includes(outs) || (outs === 0 && rng() < 0.1));
   }
   if (outs === 0) return false;
   return outs >= 12 || rng() < 0.35;
@@ -64,7 +76,7 @@ function generate(rng: () => number, level: number): Question<Scenario> {
   ).slice(0, 3);
   return {
     type: 'outs', level, key: `outs:L${level}:${streetOf(sc.board)}:${outs}`,
-    prompt: `You hold ${show(sc.hole)}. The board is ${show(sc.board)}. You do not have a straight yet. How many of the unseen cards would give you a straight or better (straight, flush, full house, four of a kind or straight flush) on the next card?`,
+    prompt: `You hold ${show(sc.hole)}. The board is ${show(sc.board)}. You do not have a straight yet. How many of the unseen cards would give you a straight or better (straight, flush, full house, four of a kind or straight flush) on the next card, using your own cards? A card that only completes a hand on the board does not count, because every player would have it.`,
     options: shuffle(rng, [outs, ...wrong]).map((v) => ({ value: String(v), label: String(v) })),
     scenario: sc,
   };
@@ -78,8 +90,8 @@ function grade(q: Question, answer: string): Grade {
     borderline: false,
     certainty: 'exact',
     explanation: cards.length === 0
-      ? 'No unseen card gives you a straight or better on the next card.'
-      : `${cards.length} unseen cards give you a straight or better on the next card: ${show(cards)}.`,
+      ? 'No unseen card gives you a straight or better with your own cards on the next card.'
+      : `${cards.length} unseen cards give you a straight or better with your own cards on the next card: ${show(cards)}. Cards that only complete a hand on the board are not outs.`,
   };
 }
 

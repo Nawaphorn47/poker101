@@ -69,6 +69,9 @@ describe('drill page', () => {
     const board = screen.getByLabelText('board');
     expect(board.querySelectorAll('.card')).toHaveLength(4);
     expect(screen.getByLabelText('your cards').querySelectorAll('.card')).toHaveLength(2);
+    // sighted players get visible captions too, not only screen-reader labels
+    expect(screen.getByText('Board')).toBeTruthy();
+    expect(screen.getByText('Your cards')).toBeTruthy();
   });
 
   it('a question without a board shows no board area', async () => {

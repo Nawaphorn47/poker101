@@ -83,3 +83,5 @@ button:disabled { opacity: 0.5; cursor: default; }
 .chart-grid button.push, .chart-grid button.call { background: #2e7d32; color: #fff; }
 .chart-grid button.borderline { border: 1px dashed var(--accent); }
 .chart-grid button.selected { outline: 2px solid var(--accent); }
+.drill .card-group { display: flex; flex-direction: column; gap: 2px; }
+.drill .caption { color: var(--muted); font-size: 0.8rem; }
