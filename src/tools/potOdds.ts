@@ -32,6 +32,7 @@ export function potOddsReport(input: PotOddsInput): PotOddsReport {
   if (!Number.isInteger(outs) || outs < 0 || outs > 20) return { ok: false, error: 'Outs must be a whole number from 0 to 20.' };
 
   const potAfter = potBefore + bet;
+  if (!Number.isFinite(potAfter + bet)) return { ok: false, error: 'These numbers are too large to calculate.' };
   const required = requiredEquity(bet, potAfter);
   if (street === 'river') return { ok: true, potAfter, requiredEquity: required, verdict: null, disagreement: false };
 

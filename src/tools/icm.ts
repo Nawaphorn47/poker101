@@ -4,6 +4,7 @@ export type IcmResult =
 
 const MAX_PLAYERS = 10;
 const MAX_PAID_PLACES = 5;
+const MAX_STACK_SPREAD = 1e12;
 
 /**
  * Malmuth-Harville ICM. Player i finishes first with probability stack_i / total; after removing the
@@ -20,6 +21,9 @@ export function icmEquities(stacks: number[], payouts: number[]): IcmResult {
   if (!payouts.every((p) => Number.isFinite(p) && p >= 0)) return { ok: false, error: 'Payouts must be numbers of 0 or more.' };
 
   const total = stacks.reduce((a, b) => a + b, 0);
+  // beyond this spread the recursion subtracts stacks from a total they cannot be told apart from
+  if (!Number.isFinite(total) || total / Math.min(...stacks) > MAX_STACK_SPREAD)
+    return { ok: false, error: 'The stacks differ too much to calculate. Use smaller numbers.' };
   const values = new Array<number>(n).fill(0);
   const taken = new Array<boolean>(n).fill(false);
 

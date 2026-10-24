@@ -10,8 +10,12 @@ export function PotOddsPanel() {
   const [outs, setOuts] = useState('');
   const [street, setStreet] = useState<'flop' | 'turn' | 'river'>('flop');
 
-  const complete = pot.trim() !== '' && bet.trim() !== '' && outs.trim() !== '';
-  const report = complete ? potOddsReport({ potBefore: Number(pot), bet: Number(bet), outs: Number(outs), street }) : null;
+  // outs only matter before the river
+  const needsOuts = street !== 'river';
+  const complete = pot.trim() !== '' && bet.trim() !== '' && (!needsOuts || outs.trim() !== '');
+  const report = complete
+    ? potOddsReport({ potBefore: Number(pot), bet: Number(bet), outs: needsOuts ? Number(outs) : 0, street })
+    : null;
 
   return (
     <div className="tool-panel">
@@ -36,7 +40,7 @@ export function PotOddsPanel() {
         </select>
       </label>
 
-      {!complete && <p className="note">Enter the pot, the bet and your outs.</p>}
+      {!complete && <p className="note">{needsOuts ? 'Enter the pot, the bet and your outs.' : 'Enter the pot and the bet.'}</p>}
       {report && !report.ok && (
         <div role="alert" className="warning">
           {report.error}

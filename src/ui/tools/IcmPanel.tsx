@@ -12,7 +12,9 @@ export function IcmPanel() {
 
   const edit = (list: string[], set: (v: string[]) => void, i: number, v: string) =>
     set(list.map((x, k) => (k === i ? v : x)));
-  const result = icmEquities(stacks.map(Number), payouts.map(Number));
+  // a blank field must be an error, not Number('') === 0
+  const num = (s: string) => (s.trim() === '' ? NaN : Number(s));
+  const result = icmEquities(stacks.map(num), payouts.map(num));
 
   return (
     <div className="tool-panel">
@@ -71,7 +73,7 @@ export function IcmPanel() {
             <thead>
               <tr>
                 <th>Player</th>
-                <th>Chips</th>
+                <th>Chip share</th>
                 <th>Prize value</th>
                 <th>Share of prize pool</th>
               </tr>

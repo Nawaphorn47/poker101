@@ -38,6 +38,18 @@ describe('PotOddsPanel', () => {
     expect(screen.queryByTestId('verdict')).toBeNull();
   });
 
+  it('on the river the outs field is not required', () => {
+    render(<PotOddsPanel />);
+    fireEvent.change(screen.getByLabelText('Street'), { target: { value: 'river' } });
+    type('Pot before the bet', '100');
+    type('Bet', '50');
+    expect(screen.getByTestId('required-equity').textContent).toBe('25.0%');
+    expect(screen.queryByRole('alert')).toBeNull();
+    type('Outs', '25');
+    expect(screen.getByTestId('required-equity').textContent).toBe('25.0%');
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
   it('a bet of 0 shows an alert and no result', () => {
     render(<PotOddsPanel />);
     type('Pot before the bet', '100');
@@ -96,6 +108,21 @@ describe('IcmPanel', () => {
     type('Stack 2', '0');
     expect(screen.getByRole('alert').textContent).toMatch(/stack/i);
     expect(screen.queryAllByTestId('icm-row')).toHaveLength(0);
+  });
+
+  it('a cleared payout field is an error, not a silent zero', () => {
+    render(<IcmPanel />);
+    type('Payout 2', '');
+    expect(screen.getByRole('alert').textContent).toMatch(/payouts/i);
+    expect(screen.queryAllByTestId('icm-row')).toHaveLength(0);
+    type('Payout 2', '   ');
+    expect(screen.getByRole('alert')).toBeTruthy();
+  });
+
+  it('the chip column is labelled as a share, not a stack count', () => {
+    render(<IcmPanel />);
+    expect(screen.getByRole('columnheader', { name: 'Chip share' })).toBeTruthy();
+    expect(screen.queryByRole('columnheader', { name: 'Chips' })).toBeNull();
   });
 
   it('more payouts than players shows an alert', () => {

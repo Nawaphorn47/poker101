@@ -1,5 +1,5 @@
 import { enumerateEquity, samplesFor, validateEquityInput, type EquityInput, type EquityResult } from './equity';
-import { runSimulation } from './equityLoop';
+import { CALCULATION_FAILED, runSimulation } from './equityLoop';
 import type { ToolWorkerRequest, ToolWorkerResponse } from './equityToolWorker';
 
 export type RunHandle = { stop(): void };
@@ -44,16 +44,24 @@ export function startEquity(
     return handle;
   }
   if (input.board.length >= 3) {
-    queueMicrotask(() => emit(enumerateEquity(input), true));
+    queueMicrotask(() => {
+      try {
+        emit(enumerateEquity(input), true);
+      } catch {
+        emit({ ok: false, error: CALCULATION_FAILED }, true);
+      }
+    });
     return handle;
   }
 
   const seed = opts.seed ?? Date.now() % 2_147_483_647;
   const cap = opts.cap ?? samplesFor(input.hands.length);
-  const chunk = opts.chunk ?? 20_000;
+  const workerChunk = opts.chunk ?? 20_000;
+  // on the main thread each slice blocks input, so keep slices short (about 30ms)
+  const mainChunk = opts.chunk ?? 5_000;
 
   const mainThread = () =>
-    runSimulation(input, seed, Math.max(1, Math.floor(cap / 2)), chunk, (r, d) => emit(r, d, FALLBACK_NOTE), () => stopped);
+    runSimulation(input, seed, Math.max(1, Math.floor(cap / 2)), mainChunk, (r, d) => emit(r, d, FALLBACK_NOTE), () => stopped);
 
   if (opts.useWorker === false || typeof Worker === 'undefined') {
     mainThread();
@@ -67,7 +75,7 @@ export function startEquity(
       worker = null;
       if (!stopped) mainThread();
     };
-    const request: ToolWorkerRequest = { type: 'start', input, seed, cap, chunk };
+    const request: ToolWorkerRequest = { type: 'start', input, seed, cap, chunk: workerChunk };
     worker.postMessage(request);
   } catch {
     worker = null;
