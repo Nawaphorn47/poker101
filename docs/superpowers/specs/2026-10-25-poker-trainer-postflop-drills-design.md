@@ -57,7 +57,7 @@ src/drill/
 
 ### 3. `vsrange`
 - Scenario: villain opened from position V, hero called from position H (in or out of position, stated), on a turn or river board. The villain bets 50%, 75% or 100% of the pot.
-- Level 1: the villain bets with his **whole opening range**. Level 2: he bets only hands that **beat the board alone** (`compareScores(evaluate(board + hole), evaluate(board)) > 0`).
+- Level 1: the villain bets with his **whole opening range**. Level 2: he bets only hands whose hole cards **lift the hand to a higher category than the board alone** (`evaluate(board + hole).category > evaluate(board).category`: a pair or better on an unpaired board, trips or two pair on a paired board). Categories are compared, not full scores, because a four-card turn board has fewer kickers than a five-card hand, so any extra card would count as an improvement; kicker-only gains are not a made hand.
 - Equity: for every combination of the range that does not use a card of the hero or the board (and, in level 2, passes the filter), and for every possible remaining card (one on the turn, none on the river), compare the hero's hand with the villain's; wins count 1, ties 0.5. All combinations and all remaining cards are weighted equally.
 - EV(call) = equity × pot after the bet − (1 − equity) × call. Call is correct when EV > 0. The question states "no further betting after your call". The feedback shows EV of calling, EV of folding (0), the range used and its share of all hands.
 - A question is accepted only if at least 15 combinations remain after blockers and the filter; otherwise it is regenerated (at most 50 attempts, then level 1 behaviour is used).
