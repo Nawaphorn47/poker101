@@ -4,7 +4,7 @@ import type { DrillId } from './types';
 type TypeStats = { total: number; correct: number; accuracy: number };
 export type Summary = { total: number; correct: number; byType: Record<DrillId, TypeStats> };
 
-const TYPES: DrillId[] = ['odds', 'preflop', 'pushfold'];
+const TYPES: DrillId[] = ['odds', 'preflop', 'pushfold', 'madehand', 'outs', 'vsrange'];
 
 export function summarise(results: DrillResult[]): Summary {
   const byType = Object.fromEntries(TYPES.map((t) => [t, { total: 0, correct: 0, accuracy: 0 }])) as Record<DrillId, TypeStats>;

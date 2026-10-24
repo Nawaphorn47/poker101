@@ -1,4 +1,4 @@
-export type DrillId = 'odds' | 'preflop' | 'pushfold';
+export type DrillId = 'odds' | 'preflop' | 'pushfold' | 'madehand' | 'outs' | 'vsrange';
 
 export type Option = { value: string; label: string };
 

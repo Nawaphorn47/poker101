@@ -5,7 +5,7 @@ import type { DrillResult } from './db';
 const num = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
 const idx = (x: unknown, len: number): x is number => Number.isInteger(x) && (x as number) >= 0 && (x as number) < len;
 const ACTIONS = ['fold', 'check', 'call', 'bet', 'raise'];
-const DRILL_TYPES = ['odds', 'preflop', 'pushfold'];
+const DRILL_TYPES = ['odds', 'preflop', 'pushfold', 'madehand', 'outs', 'vsrange'];
 
 /** Shape check for a stored or imported drill result. */
 export function isValidDrillResult(x: any): x is DrillResult {
