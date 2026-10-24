@@ -14,6 +14,8 @@ type OddsScenario = {
 const TOLERANCE = 5; // percentage points, level 2
 const BET_FRACTIONS = [0.25, 0.33, 0.5, 0.66, 0.75, 1, 1.5];
 
+const outsText = (n: number) => `${n} ${n === 1 ? "out" : "outs"}`;
+
 const pick = <T,>(rng: () => number, xs: T[]): T => xs[Math.floor(rng() * xs.length)];
 const int = (rng: () => number, lo: number, hi: number) => lo + Math.floor(rng() * (hi - lo + 1));
 
@@ -57,7 +59,7 @@ function generate(rng: () => number, level: number): Question<OddsScenario> {
     const exact = Math.round(outsEquity(outs, street) * 100);
     return {
       type: 'odds', level, key: `odds:L2:${street}:${outs}`,
-      prompt: `You have ${outs} outs on the ${street}. Estimate your chance to hit${street === 'flop' ? ' by the river' : ' on the next card'} (rule of ${street === 'flop' ? 4 : 2}).`,
+      prompt: `You have ${outsText(outs)} on the ${street}. Estimate your chance to hit${street === 'flop' ? ' by the river' : ' on the next card'} (rule of ${street === 'flop' ? 4 : 2}).`,
       options: percentOptions(rng, exact, 0),
       scenario: { variant: 'outs', pot: 0, outs, street },
     };
@@ -65,7 +67,7 @@ function generate(rng: () => number, level: number): Question<OddsScenario> {
   const { prePot, call, pot } = bet(rng);
   return {
     type: 'odds', level: 3, key: `odds:L3:${street}`,
-    prompt: `${outs} outs on the ${street}. The pot was ${prePot}; villain bets ${call}, making it ${pot}. Call or fold?`,
+    prompt: `${outsText(outs)} on the ${street}. The pot was ${prePot}; villain bets ${call}, making it ${pot}. Call or fold?`,
     options: [{ value: 'call', label: 'Call' }, { value: 'fold', label: 'Fold' }],
     scenario: { variant: 'callfold', pot, call, prePot, outs, street },
   };
@@ -87,7 +89,7 @@ function grade(q: Question, answer: string): Grade {
     return {
       ...base,
       correct: Math.abs(Number(answer) - exact) <= TOLERANCE + 1e-9,
-      explanation: `${sc.outs} outs on the ${sc.street} is exactly ${exact.toFixed(1)}%. The rule of ${sc.street === 'flop' ? 4 : 2} estimate is ${sc.outs! * (sc.street === 'flop' ? 4 : 2)}%. Answers within ${TOLERANCE} points count as correct.`,
+      explanation: `${outsText(sc.outs!)} on the ${sc.street} is exactly ${exact.toFixed(1)}%. The rule of ${sc.street === 'flop' ? 4 : 2} estimate is ${sc.outs! * (sc.street === 'flop' ? 4 : 2)}%. Answers within ${TOLERANCE} points count as correct.`,
     };
   }
   const equity = outsEquity(sc.outs!, sc.street!);
