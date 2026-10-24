@@ -94,17 +94,15 @@ export function Table({ session, onExit }: { session: Session; onExit: () => voi
         </div>
       )}
       {!done && legal && (
-        <>
-          <ActionBar
-            legal={legal}
-            currentBet={st.round.currentBet}
-            onAction={(a) => {
-              session.submitHuman(a);
-            }}
-          />
-          <HintPanel session={session} tick={tick} />
-        </>
+        <ActionBar
+          legal={legal}
+          currentBet={st.round.currentBet}
+          onAction={(a) => {
+            session.submitHuman(a);
+          }}
+        />
       )}
+      {!done && humanIdx >= 0 && <HintPanel session={session} tick={tick} />}
     </section>
   );
 }
