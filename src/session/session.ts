@@ -51,8 +51,8 @@ export type Session = {
 export function createSession(mode: 'cash' | 'tournament', deps: SessionDeps, resume?: ResumeState): Session {
   let game: CashGame | Tournament = resume?.game ?? (mode === 'cash' ? newCashGame([0, 1, 2, 3, 4, 5]) : newTournament());
   let pendingGame: CashGame | Tournament | null = null; // game after the finished hand is settled
-  let cfg: HandConfig;
-  let state: HandState;
+  let cfg!: HandConfig;
+  let state!: HandState;
   let usedHint = resume?.usedHint ?? false;
   let humanIdx = -1;
   let warn: string | null = null;
