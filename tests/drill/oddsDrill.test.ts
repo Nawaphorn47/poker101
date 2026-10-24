@@ -1,6 +1,6 @@
 import { oddsDrill } from '../../src/drill/modules/oddsDrill';
 import type { Question } from '../../src/drill/types';
-import { outsEquity, requiredEquity, evCall } from '../../src/drill/oddsMath';
+import { outsEquity, requiredEquity, evCall, nextCardEquity } from '../../src/drill/oddsMath';
 import { mulberry32 } from '../../src/drill/../engine/deck';
 
 const seeds = Array.from({ length: 200 }, (_, i) => i + 1);
@@ -74,7 +74,7 @@ describe('level 3: call or fold with outs', () => {
     for (const s of seeds) {
       const q = gen(3, s);
       const sc = q.scenario as { outs: number; street: 'flop' | 'turn'; pot: number; call: number };
-      const ev = evCall(outsEquity(sc.outs, sc.street), sc.pot, sc.call);
+      const ev = evCall(nextCardEquity(sc.outs, sc.street), sc.pot, sc.call);
       const call = oddsDrill.grade(q, 'call');
       const fold = oddsDrill.grade(q, 'fold');
       expect(call.correct).toBe(ev > 0);

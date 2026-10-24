@@ -68,12 +68,13 @@ A question carries a `key` (scenario signature such as `preflop:BTN:none:AJo`) u
 ### 1. Pot odds / equity (exact)
 - Level 1: given pot and bet, choose the required equity (4 options).
 - Level 2: given a number of outs on the flop or turn, estimate equity (rule of 2 and 4); an answer within ±5 percentage points of the exact value is correct.
-- Level 3: outs + pot + bet, choose call or fold.
+- Level 3: outs + pot + bet, choose call or fold, counting **only the next card** (outs over 47 unseen on the flop, 46 on the turn). Using two-card odds against a single bet would teach chasing draws, so the prompt says "count only the next card".
+- Level 2 uses 1–12 outs: above that the rule of 4 drifts more than the 5-point tolerance.
 - Exact equity is computed by counting outs against the unseen cards (one card to come on the turn; two cards to come on the flop), not by simulating against a random hand, because a player facing a bet usually has a stronger opponent than a random one.
 - EV(call) = equity × pot − (1 − equity) × call; EV(fold) = 0. The panel states that later betting rounds are not included.
 
 ### 2. Preflop by position (approximate)
-- Random hand, position (EP, MP, CO, BTN, SB, BB) and situation (nobody has raised / facing a raise); answer fold, call or raise. Stack depth is not shown; the key assumes deep stacks (about 100bb).
+- Random hand, position (EP, MP, CO, BTN, SB, BB) and situation (nobody has raised / facing a raise); answer fold, call or raise. The big blind is only asked when facing a raise (with no raise it simply checks). Stack depth is not shown; the key assumes deep stacks (about 100bb).
 - The key is `coach/preflopAdvice` (the same table as the in-game hint). A hand whose Chen score is within 1 of the relevant threshold is **borderline**: both adjacent answers are accepted.
 - No EV is shown. Certainty is `approximate` and the panel says "Guideline, not GTO".
 

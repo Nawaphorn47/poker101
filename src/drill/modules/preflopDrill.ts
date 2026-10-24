@@ -19,7 +19,8 @@ export function makePreflopDrill(source: RangeSource): DrillModule {
       const deck = shuffledDeck(Math.floor(rng() * 2 ** 31));
       const hole = [deck[0], deck[1]];
       const position = POSITIONS[Math.floor(rng() * POSITIONS.length)];
-      const facing = rng() < 0.5 ? 'none' : 'raise';
+      // the big blind with no raise just checks for free, so there is no fold decision to drill
+      const facing = position === 'BB' || rng() >= 0.5 ? 'raise' : 'none';
       return {
         type: 'preflop', level, key: `preflop:${position}:${facing}:${handClass(hole)}`,
         prompt: `You hold ${hole.map(cardToString).join(' ')} on the ${position}, about 100bb deep. ${facing === 'none' ? 'Nobody has raised.' : 'A player has raised before you.'} What do you do?`,

@@ -13,7 +13,14 @@ export type DrillDeps = {
   listResults: () => Promise<DrillResult[]>;
   rng: () => number;
   now: () => number;
+  /** longest wait for the database before carrying on without it */
+  waitMs: number;
 };
+
+/** Resolves with the promise's value, or undefined if it takes longer than `ms`. */
+function within<T>(p: Promise<T>, ms: number): Promise<T | undefined> {
+  return Promise.race([p, new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), ms))]);
+}
 
 const TITLES: Record<DrillId, string> = {
   odds: 'Pot odds / equity',
@@ -39,7 +46,10 @@ export function DrillPage({
 }) {
   const rngRef = useRef(mulberry32(Date.now() & 0x7fffffff));
   const d: DrillDeps = useMemo(
-    () => ({ saveResult: saveDrillResult, listResults: listDrillResults, rng: rngRef.current, now: Date.now, ...deps }),
+    () => ({
+      saveResult: saveDrillResult, listResults: listDrillResults, rng: rngRef.current, now: Date.now, waitMs: 2000,
+      ...deps,
+    }),
     [deps],
   );
   const [active, setActive] = useState<Active | null>(null);
@@ -47,16 +57,18 @@ export function DrillPage({
   const [warning, setWarning] = useState<string | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [finishing, setFinishing] = useState(false);
   const pending = useRef<Promise<unknown>[]>([]);
 
   async function start(module: DrillModule, level: number) {
     let results: DrillResult[] = [];
     try {
-      results = await d.listResults();
+      results = (await within(d.listResults(), d.waitMs)) ?? [];
     } catch {
       /* no history available: start with plain random questions */
     }
     pending.current = [];
+    setFinishing(false);
     setSummary(null);
     setGrade(null);
     setWarning(null);
@@ -79,21 +91,25 @@ export function DrillPage({
   }
 
   async function next() {
-    if (!active) return;
-    setGrade(null);
+    if (!active || finishing) return;
     setWarning(null);
     if (active.index + 1 < active.questions.length) {
+      setGrade(null);
       setActive({ ...active, index: active.index + 1 });
       return;
     }
-    await Promise.all(pending.current);
+    // last question: keep its feedback on screen (so it cannot be answered again) until the summary is ready
+    setFinishing(true);
+    await within(Promise.allSettled(pending.current), d.waitMs);
     let all: DrillResult[] = [];
     try {
-      all = await d.listResults();
+      all = (await within(d.listResults(), d.waitMs)) ?? [];
     } catch {
       /* show the set score only */
     }
     setSummary(summarise(all));
+    setGrade(null);
+    setFinishing(false);
     setActive({ ...active, index: active.questions.length });
   }
 
@@ -180,7 +196,9 @@ export function DrillPage({
                 </table>
               )}
             </div>
-            <button onClick={next}>{active.index + 1 === active.questions.length ? 'Finish' : 'Next question'}</button>
+            <button onClick={next} disabled={finishing}>
+              {active.index + 1 === active.questions.length ? 'Finish' : 'Next question'}
+            </button>
           </>
         )}
       </section>
@@ -191,7 +209,7 @@ export function DrillPage({
     <section className="drill">
       <button onClick={onBack}>Back</button>
       <h2>Drills</h2>
-      <p className="note">Sets of 10 questions. Questions you miss come up more often.</p>
+      <p className="note">Sets of 10 questions. A scenario you miss is more likely to come back when it repeats.</p>
       {modules.map((m) => (
         <div key={m.id} className="drill-type">
           <h3>{TITLES[m.id]}</h3>

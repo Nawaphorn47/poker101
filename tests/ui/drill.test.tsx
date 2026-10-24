@@ -111,6 +111,48 @@ describe('drill page', () => {
     expect(screen.getByRole('button', { name: 'Next question' })).toBeTruthy();
   });
 
+  it('after Finish the answer buttons do not come back while results load, and the score stays 10 / 10', async () => {
+    let calls = 0;
+    let release: (r: DrillResult[]) => void = () => {};
+    const { deps } = makeDeps({
+      listResults: () => {
+        calls++;
+        return calls === 1 ? Promise.resolve([]) : new Promise<DrillResult[]>((r) => { release = r; });
+      },
+    });
+    render(<DrillPage onBack={() => {}} modules={[fake('odds')]} deps={deps} />);
+    start('Pot odds / equity');
+    for (let i = 0; i < 9; i++) {
+      await answer('Answer A');
+      fireEvent.click(await screen.findByRole('button', { name: 'Next question' }));
+    }
+    await answer('Answer A');
+    fireEvent.click(await screen.findByRole('button', { name: 'Finish' }));
+    await waitFor(() => expect(calls).toBe(2));
+    expect(screen.queryByRole('button', { name: 'Answer A' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Answer B' })).toBeNull();
+    release([]);
+    expect(await screen.findByText('10 / 10')).toBeTruthy();
+  });
+
+  it('a save that never completes does not stall the summary', async () => {
+    const { deps } = makeDeps({ saveResult: () => new Promise<void>(() => {}), waitMs: 20 });
+    render(<DrillPage onBack={() => {}} modules={[fake('odds')]} deps={deps} />);
+    start('Pot odds / equity');
+    for (let i = 0; i < 10; i++) {
+      await answer('Answer A');
+      fireEvent.click(await screen.findByRole('button', { name: i === 9 ? 'Finish' : 'Next question' }));
+    }
+    expect(await screen.findByText('10 / 10')).toBeTruthy();
+  });
+
+  it('a history read that never completes still lets a set start', async () => {
+    const { deps } = makeDeps({ listResults: () => new Promise<DrillResult[]>(() => {}), waitMs: 20 });
+    render(<DrillPage onBack={() => {}} modules={[fake('odds')]} deps={deps} />);
+    start('Pot odds / equity');
+    expect(await screen.findByText('Question for odds')).toBeTruthy();
+  });
+
   it('saves a result for every answered question', async () => {
     const { deps, saved } = makeDeps();
     render(<DrillPage onBack={() => {}} modules={[fake('odds')]} deps={deps} />);

@@ -1,5 +1,5 @@
 import type { DrillModule, Grade, Option, Question } from '../types';
-import { evCall, outsEquity, requiredEquity } from '../oddsMath';
+import { evCall, nextCardEquity, outsEquity, requiredEquity } from '../oddsMath';
 
 type OddsScenario = {
   variant: 'required' | 'outs' | 'callfold';
@@ -54,7 +54,8 @@ function generate(rng: () => number, level: number): Question<OddsScenario> {
     };
   }
   const street = pick(rng, ['flop', 'turn'] as const);
-  const outs = int(rng, 1, 15);
+  // level 2 asks for the rule of 4 / rule of 2; above 12 outs the rule drifts more than the 5-point tolerance
+  const outs = level === 2 ? int(rng, 1, 12) : int(rng, 1, 15);
   if (level === 2) {
     const exact = Math.round(outsEquity(outs, street) * 100);
     return {
@@ -67,7 +68,7 @@ function generate(rng: () => number, level: number): Question<OddsScenario> {
   const { prePot, call, pot } = bet(rng);
   return {
     type: 'odds', level: 3, key: `odds:L3:${street}`,
-    prompt: `${outsText(outs)} on the ${street}. The pot was ${prePot}; villain bets ${call}, making it ${pot}. Call or fold?`,
+    prompt: `${outsText(outs)} on the ${street}. The pot was ${prePot}; villain bets ${call}, making it ${pot}. Call or fold? Count only the next card.`,
     options: [{ value: 'call', label: 'Call' }, { value: 'fold', label: 'Fold' }],
     scenario: { variant: 'callfold', pot, call, prePot, outs, street },
   };
@@ -92,14 +93,15 @@ function grade(q: Question, answer: string): Grade {
       explanation: `${outsText(sc.outs!)} on the ${sc.street} is exactly ${exact.toFixed(1)}%. The rule of ${sc.street === 'flop' ? 4 : 2} estimate is ${sc.outs! * (sc.street === 'flop' ? 4 : 2)}%. Answers within ${TOLERANCE} points count as correct.`,
     };
   }
-  const equity = outsEquity(sc.outs!, sc.street!);
+  // a call that sees one card is judged on one-card odds; counting two cards would reward chasing draws
+  const equity = nextCardEquity(sc.outs!, sc.street!);
   const ev = evCall(equity, sc.pot, sc.call!);
   const best = Math.max(ev, 0);
   const chosen = answer === 'call' ? ev : 0;
   return {
     ...base,
     correct: answer === 'call' ? ev > 0 : ev <= 0,
-    explanation: `Equity ${(equity * 100).toFixed(1)}% vs ${(requiredEquity(sc.call!, sc.pot) * 100).toFixed(1)}% needed. EV(call) = equity x pot - (1 - equity) x call = ${ev.toFixed(1)} chips; EV(fold) = 0. This counts only the showdown, not later betting rounds.`,
+    explanation: `Counting only the next card, your equity is ${(equity * 100).toFixed(1)}% vs ${(requiredEquity(sc.call!, sc.pot) * 100).toFixed(1)}% needed. EV(call) = equity x pot - (1 - equity) x call = ${ev.toFixed(1)} chips; EV(fold) = 0. This counts only the showdown, not later betting rounds.`,
     ev: { chosen, best, unit: 'chips' },
   };
 }

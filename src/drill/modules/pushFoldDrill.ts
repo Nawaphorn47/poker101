@@ -70,7 +70,7 @@ function grade(q: Question, answer: string): Grade {
     correct,
     borderline: correct && chosen < best,
     certainty: 'exact',
-    explanation: `${cls} at ${stack}bb, heads-up: EV of ${verb} ${active.toFixed(2)}bb vs fold ${fold.toFixed(2)}bb. These come from a heads-up Nash equilibrium built on simulated equities (about +/-1%), so an answer within ${TOLERANCE_BB}bb of the best is accepted. Multi-way spots differ.`,
+    explanation: `${cls} at ${stack}bb, heads-up: EV of ${verb} ${active.toFixed(2)}bb vs fold ${fold.toFixed(2)}bb. These come from a heads-up Nash equilibrium built on simulated equities (about +/-1%) and ignore card removal between hands, so an answer within ${TOLERANCE_BB}bb of the best is accepted. Multi-way spots differ.`,
     ev: { chosen, best, unit: 'bb' },
   };
 }

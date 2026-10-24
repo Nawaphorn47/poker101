@@ -15,6 +15,11 @@ export function outsEquity(outs: number, street: 'flop' | 'turn'): number {
   return 1 - choose(47 - outs, 2) / choose(47, 2);
 }
 
+/** Chance to hit on the very next card only (flop: 47 unseen, turn: 46 unseen), for a call that sees one card. */
+export function nextCardEquity(outs: number, street: 'flop' | 'turn'): number {
+  return outs / (street === 'flop' ? 47 : 46);
+}
+
 /** Rule of 4 on the flop, rule of 2 on the turn, as a fraction. */
 export function ruleOfEstimate(outs: number, street: 'flop' | 'turn'): number {
   return (outs * (street === 'flop' ? 4 : 2)) / 100;
