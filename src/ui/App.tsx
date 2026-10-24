@@ -6,8 +6,9 @@ import { Lobby } from './Lobby';
 import { Table } from './Table';
 import { StatsPage } from './StatsPage';
 import { ReviewPage } from './ReviewPage';
+import { DrillPage } from './DrillPage';
 
-type Screen = 'lobby' | 'table' | 'stats' | 'review';
+type Screen = 'lobby' | 'table' | 'stats' | 'review' | 'drill';
 
 export function App({ deps }: { deps?: Partial<SessionDeps> }) {
   const [screen, setScreen] = useState<Screen>('lobby');
@@ -41,6 +42,7 @@ export function App({ deps }: { deps?: Partial<SessionDeps> }) {
         <Lobby
           onStart={(m) => start(m)}
           onStats={() => setScreen('stats')}
+          onDrill={() => setScreen('drill')}
           onResume={resume ? () => start(resume.mode, resume) : undefined}
         />
       )}
@@ -54,6 +56,7 @@ export function App({ deps }: { deps?: Partial<SessionDeps> }) {
           }}
         />
       )}
+      {screen === 'drill' && <DrillPage onBack={() => setScreen('lobby')} />}
       {screen === 'review' && <ReviewPage handId={reviewId} onBack={() => setScreen('stats')} />}
     </main>
   );

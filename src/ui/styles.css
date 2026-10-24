@@ -49,3 +49,11 @@ button:disabled { opacity: 0.5; cursor: default; }
 .review li[data-flag="questionable"] { border-left: 4px solid var(--danger); padding-left: 8px; }
 .review li { margin: 6px 0; }
 .note { color: var(--muted); font-size: 0.9rem; }
+.drill { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.drill-type { border-top: 1px solid var(--muted); padding: 8px 0; width: 100%; }
+.drill .options { display: flex; flex-wrap: wrap; gap: 4px; }
+.drill .prompt { font-size: 1.05rem; max-width: 60ch; }
+.drill .feedback { background: var(--panel); border-radius: 10px; padding: 10px 14px; max-width: 60ch; }
+.drill .feedback table { border-collapse: collapse; margin-top: 6px; }
+.drill .feedback td { padding: 2px 12px 2px 0; }
+.drill .score { font-size: 2rem; font-weight: 700; margin: 0; }
