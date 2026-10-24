@@ -3,7 +3,7 @@ import { mulberry32 } from '../../src/engine/deck';
 
 describe('every drill module', () => {
   it('lists the registered drill types', () => {
-    expect(ALL_MODULES.map((m) => m.id)).toEqual(['odds', 'preflop', 'pushfold', 'madehand', 'outs']);
+    expect(ALL_MODULES.map((m) => m.id)).toEqual(['odds', 'preflop', 'pushfold', 'madehand', 'outs', 'vsrange']);
   });
 
   for (const module of ALL_MODULES) {
