@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:pushfold": "vite-node scripts/build-pushfold.ts"
   },
   "dependencies": {
     "idb": "^8.0.4",
