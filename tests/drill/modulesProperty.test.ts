@@ -2,8 +2,8 @@ import { ALL_MODULES } from '../../src/drill/modules';
 import { mulberry32 } from '../../src/engine/deck';
 
 describe('every drill module', () => {
-  it('lists the three drill types', () => {
-    expect(ALL_MODULES.map((m) => m.id)).toEqual(['odds', 'preflop', 'pushfold']);
+  it('lists the registered drill types', () => {
+    expect(ALL_MODULES.map((m) => m.id)).toEqual(['odds', 'preflop', 'pushfold', 'madehand']);
   });
 
   for (const module of ALL_MODULES) {
