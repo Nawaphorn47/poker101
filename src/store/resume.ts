@@ -15,6 +15,10 @@ export type ResumeState = {
   actions: Action[];
   humanSeat: number;
   usedHint: boolean;
+  /** cash only: how many times the human has bought in; defaults to 1 when absent */
+  buyIns?: number;
+  /** cash only: when the session started, used as its record id */
+  startedAt?: number;
 };
 
 export function saveResume(state: ResumeState): void {

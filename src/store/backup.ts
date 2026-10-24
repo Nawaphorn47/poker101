@@ -1,4 +1,4 @@
-import type { HandLog } from '../engine/handLog';
+import { isValidHandLog } from './validate';
 import { listHands, listSessions, saveHand, saveSession, type SessionRecord } from './db';
 
 const BACKUP_VERSION = 1;
@@ -7,9 +7,7 @@ export async function exportBackup(): Promise<string> {
   return JSON.stringify({ version: BACKUP_VERSION, hands: await listHands(), sessions: await listSessions() });
 }
 
-const isHand = (h: any): h is HandLog =>
-  !!h && typeof h.id === 'string' && typeof h.seed === 'number' && Array.isArray(h.seats) &&
-  Array.isArray(h.actions) && typeof h.humanSeat === 'number' && !!h.blinds;
+const isHand = isValidHandLog;
 const isSession = (s: any): s is SessionRecord =>
   !!s && typeof s.id === 'string' && (s.mode === 'cash' || s.mode === 'tournament') && typeof s.profitBb === 'number';
 

@@ -56,8 +56,10 @@ export function createSession(mode: 'cash' | 'tournament', deps: SessionDeps, re
   let usedHint = resume?.usedHint ?? false;
   let humanIdx = -1;
   let warn: string | null = null;
-  let buyIns = 1;
-  let startedAt = deps.now();
+  let buyIns = resume?.buyIns ?? 1;
+  let startedAt = resume?.startedAt ?? deps.now();
+  // set when the user leaves: stops bots and all further saves so an abandoned game cannot reappear
+  let disposed = false;
   const pending = new Set<Promise<void>>();
   const listeners = new Set<() => void>();
 
@@ -84,9 +86,10 @@ export function createSession(mode: 'cash' | 'tournament', deps: SessionDeps, re
   }
 
   function persist() {
+    if (disposed) return;
     deps.saveResume({
       version: RESUME_VERSION, mode, game, handConfig: cfg, actions: state.log.map((e) => e.action),
-      humanSeat: humanIdx, usedHint,
+      humanSeat: humanIdx, usedHint, buyIns, startedAt,
     });
   }
 
@@ -140,7 +143,7 @@ export function createSession(mode: 'cash' | 'tournament', deps: SessionDeps, re
       return playerView(state, humanIdx).legal;
     },
     submitHuman(a) {
-      if (state.street === 'done' || state.round.toAct !== humanIdx) return { ok: false, error: 'not your turn' };
+      if (disposed || state.street === 'done' || state.round.toAct !== humanIdx) return { ok: false, error: 'not your turn' };
       const r = apply(state, a);
       if (!r.ok) return r;
       state = r.state;
@@ -148,7 +151,7 @@ export function createSession(mode: 'cash' | 'tournament', deps: SessionDeps, re
       return { ok: true };
     },
     stepBot() {
-      if (state.street === 'done' || state.round.toAct === humanIdx || state.round.toAct < 0) return false;
+      if (disposed || state.street === 'done' || state.round.toAct === humanIdx || state.round.toAct < 0) return false;
       const seat = state.round.toAct;
       const style = STYLES[cfg.seats[seat].id % STYLES.length];
       const action = deps.decide(playerView(state, seat), style, deps.rng);
@@ -188,6 +191,7 @@ export function createSession(mode: 'cash' | 'tournament', deps: SessionDeps, re
       return t.players.find((p) => p.id === HUMAN_ID)!.stack === 0 || tournamentOver(t);
     },
     async leave() {
+      disposed = true;
       if (mode !== 'cash') return;
       const g = (pendingGame ?? game) as CashGame;
       const human = g.players.find((p) => p.id === HUMAN_ID)!;

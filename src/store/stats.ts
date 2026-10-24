@@ -26,10 +26,15 @@ function replay(log: HandLog): Replay {
 
 /** All figures are computed from hand logs; nothing is stored separately. */
 export function computeStats(hands: HandLog[]): Stats {
-  if (hands.length === 0) return { hands: 0, vpip: 0, pfr: 0, bbPer100: 0, showdownWinRate: 0 };
-  let vpip = 0, pfr = 0, net = 0, showdowns = 0, showdownWins = 0;
+  let vpip = 0, pfr = 0, net = 0, showdowns = 0, showdownWins = 0, counted = 0;
   for (const log of hands) {
-    const r = replay(log);
+    let r: Replay;
+    try {
+      r = replay(log);
+    } catch {
+      continue; // a record that cannot be replayed must not take the stats page down
+    }
+    counted++;
     if (r.voluntary) vpip++;
     if (r.raised) pfr++;
     net += log.netBb;
@@ -39,11 +44,12 @@ export function computeStats(hands: HandLog[]): Stats {
       if ((r.final.result.winnings[log.humanSeat] ?? 0) > me.totalCommitted) showdownWins++;
     }
   }
+  if (counted === 0) return { hands: 0, vpip: 0, pfr: 0, bbPer100: 0, showdownWinRate: 0 };
   return {
-    hands: hands.length,
-    vpip: vpip / hands.length,
-    pfr: pfr / hands.length,
-    bbPer100: (net / hands.length) * 100,
+    hands: counted,
+    vpip: vpip / counted,
+    pfr: pfr / counted,
+    bbPer100: (net / counted) * 100,
     showdownWinRate: showdowns === 0 ? 0 : showdownWins / showdowns,
   };
 }
