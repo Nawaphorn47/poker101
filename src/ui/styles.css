@@ -57,3 +57,18 @@ button:disabled { opacity: 0.5; cursor: default; }
 .drill .feedback table { border-collapse: collapse; margin-top: 6px; }
 .drill .feedback td { padding: 2px 12px 2px 0; }
 .drill .score { font-size: 2rem; font-weight: 700; margin: 0; }
+.tools { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.tabs [aria-selected="true"] { border-color: var(--accent); }
+.tools [role="tabpanel"] { width: 100%; }
+.tools label { display: block; margin: 6px 0; }
+.tools input, .tools select { margin-left: 8px; font: inherit; }
+.card-picker { position: relative; display: inline-block; }
+.card-picker .slot { min-width: 44px; min-height: 56px; }
+.card-picker .slot.filled { background: #fff; color: #111; font-weight: 700; }
+.card-picker .red { color: #c0262d; }
+.card-grid { position: absolute; z-index: 5; left: 0; top: 100%; background: var(--panel); border: 1px solid var(--muted); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+.card-row { display: flex; gap: 2px; }
+.card-row button { margin: 0; padding: 4px 2px; min-width: 34px; background: #fff; color: #111; }
+.card-row button.red { color: #c0262d; }
+.card-row button:disabled { opacity: 0.25; }
