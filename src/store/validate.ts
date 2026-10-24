@@ -1,9 +1,20 @@
 import { apply, createHand } from '../engine/hand';
 import type { HandLog } from '../engine/handLog';
+import type { DrillResult } from './db';
 
 const num = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
 const idx = (x: unknown, len: number): x is number => Number.isInteger(x) && (x as number) >= 0 && (x as number) < len;
 const ACTIONS = ['fold', 'check', 'call', 'bet', 'raise'];
+const DRILL_TYPES = ['odds', 'preflop', 'pushfold'];
+
+/** Shape check for a stored or imported drill result. */
+export function isValidDrillResult(x: any): x is DrillResult {
+  return (
+    !!x && typeof x.id === 'string' && DRILL_TYPES.includes(x.type) && num(x.level) &&
+    typeof x.key === 'string' && x.key.length > 0 && typeof x.correct === 'boolean' &&
+    typeof x.borderline === 'boolean' && num(x.timestamp) && (x.evLoss === undefined || num(x.evLoss))
+  );
+}
 
 /**
  * True only for a hand log that is well formed AND replays cleanly through the engine,
