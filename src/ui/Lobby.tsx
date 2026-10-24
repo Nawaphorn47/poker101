@@ -1,6 +1,7 @@
 export function Lobby(props: {
   onStart: (mode: 'cash' | 'tournament') => void;
   onStats: () => void;
+  onDrill: () => void;
   onResume?: () => void;
 }) {
   return (
@@ -10,6 +11,7 @@ export function Lobby(props: {
       {props.onResume && <button onClick={props.onResume}>Continue last game</button>}
       <button onClick={() => props.onStart('cash')}>Cash game (6-max)</button>
       <button onClick={() => props.onStart('tournament')}>Tournament (9 players)</button>
+      <button onClick={props.onDrill}>Drills</button>
       <button onClick={props.onStats}>Stats and history</button>
     </section>
   );
