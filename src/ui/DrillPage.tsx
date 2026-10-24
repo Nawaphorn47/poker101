@@ -26,11 +26,17 @@ const TITLES: Record<DrillId, string> = {
   odds: 'Pot odds / equity',
   preflop: 'Preflop by position',
   pushfold: 'Heads-up push/fold',
+  madehand: 'What do you have?',
+  outs: 'Count your outs',
+  vsrange: 'Equity against a range',
 };
 const BLURBS: Record<DrillId, string> = {
   odds: 'Exact answers, counted from outs.',
   preflop: 'Guideline answers from a simple range table, not GTO.',
   pushfold: 'Short-stack shove or fold, heads-up only, with EV in big blinds.',
+  madehand: 'Name your hand, or say who wins at showdown. Exact.',
+  outs: 'Count the cards that give you a straight or better on the next card. Exact.',
+  vsrange: 'The opener position sets his range; work out your equity and call or fold. Exact given the stated range.',
 };
 
 type Active = { module: DrillModule; level: number; questions: Question[]; index: number };
@@ -142,18 +148,33 @@ export function DrillPage({
 
   if (active) {
     const q = active.questions[active.index];
-    const hole = (q.scenario as { hole?: Card[] } | null)?.hole;
+    const shown = q.scenario as { hole?: Card[]; board?: Card[] } | null;
+    const hole = shown?.hole;
+    const boardCards = shown?.board;
     return (
       <section className="drill">
         <button onClick={onBack}>Back</button>
         <p className="note">
           Question {active.index + 1} of {active.questions.length}
         </p>
+        {boardCards && boardCards.length > 0 && (
+          <div className="card-group">
+            <span className="caption">Board</span>
+            <div className="cards board-cards" aria-label="board">
+              {boardCards.map((c, i) => (
+                <CardView key={i} card={c} />
+              ))}
+            </div>
+          </div>
+        )}
         {hole && (
-          <div className="cards">
-            {hole.map((c, i) => (
-              <CardView key={i} card={c} />
-            ))}
+          <div className="card-group">
+            {boardCards && boardCards.length > 0 && <span className="caption">Your cards</span>}
+            <div className="cards" aria-label="your cards">
+              {hole.map((c, i) => (
+                <CardView key={i} card={c} />
+              ))}
+            </div>
           </div>
         )}
         <p className="prompt">{q.prompt}</p>
